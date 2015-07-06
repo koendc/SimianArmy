@@ -69,6 +69,17 @@ import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRe
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult;
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes;
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.identitymanagement.model.GetUserResult;
+import com.amazonaws.services.identitymanagement.model.User;
+import com.amazonaws.services.rds.AmazonRDS;
+import com.amazonaws.services.rds.AmazonRDSClient;
+import com.amazonaws.services.rds.model.DBInstance;
+import com.amazonaws.services.rds.model.DeleteDBInstanceRequest;
+import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
+import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
+import com.amazonaws.services.rds.model.ListTagsForResourceRequest;
+import com.amazonaws.services.rds.model.ListTagsForResourceResult;
 import com.amazonaws.services.simpledb.AmazonSimpleDB;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
 import com.google.common.base.Objects;
@@ -305,6 +316,22 @@ public class AWSClient implements CloudClient {
     }
 
     /**
+     * Amazon RDS client. Abstracted to aid testing.
+     *
+     * @return the Amazon RDS client
+     */
+    protected AmazonRDS rdsClient() {
+        AmazonRDS client;
+        if (awsCredentialsProvider == null) {
+            client = new AmazonRDSClient();
+        } else {
+            client = new AmazonRDSClient(awsCredentialsProvider);
+        }
+        client.setEndpoint("rds." + region + ".amazonaws.com");
+        return client;
+    }
+
+    /**
      * Amazon SimpleDB client.
      *
      * @return the Amazon SimpleDB client
@@ -508,6 +535,56 @@ public class AWSClient implements CloudClient {
         return lcs;
     }
 
+    /**
+     * Describe a set of specific RDS instances.
+     *
+     * @param dbInstanceIds
+     *            the instance ids
+     * @return the database instances
+     */
+    public List<DBInstance> describeDBInstances(String... dbInstanceIds) {
+        if (dbInstanceIds == null || dbInstanceIds.length == 0) {
+            LOGGER.info(String.format("Getting all RDS instances in region %s.", region));
+        } else {
+            LOGGER.info(String.format("Getting RDS instances for %d ids in region %s.", dbInstanceIds.length, region));
+        }
+
+        List<DBInstance> dbInstances = new LinkedList<DBInstance>();
+
+        AmazonRDS rdsClient = rdsClient();
+        if (dbInstanceIds == null || dbInstanceIds.length == 0) {
+            DescribeDBInstancesRequest request = new DescribeDBInstancesRequest();
+            DescribeDBInstancesResult result = rdsClient.describeDBInstances(request);
+            dbInstances.addAll(result.getDBInstances());
+        } else {
+            for (String dbInstanceId : dbInstanceIds) {
+                DescribeDBInstancesRequest request = new DescribeDBInstancesRequest();
+                request.withDBInstanceIdentifier(dbInstanceId);
+                DescribeDBInstancesResult result = rdsClient.describeDBInstances(request);
+                dbInstances.addAll(result.getDBInstances());
+            }
+        }
+
+        LOGGER.info(String.format("Got %d RDS instances in region %s.", dbInstances.size(), region));
+        return dbInstances;
+    }
+
+    /**
+     * Describe a set of specific RDS instances.
+     *
+     * @param dbInstanceId  the database instance name
+     * @return the database instance tags
+     */
+    public List<com.amazonaws.services.rds.model.Tag> listTagsForDBInstance(String dbInstanceId) {
+        AmazonRDS rdsClient = rdsClient();
+        ListTagsForResourceRequest request = new ListTagsForResourceRequest();
+        String arn = String.format("arn:aws:rds:%s:%s:db:%s", region, getAccountId(), dbInstanceId);
+        LOGGER.debug(String.format("Getting tags for RDS instance %s.", arn));
+        request.setResourceName(arn);
+        ListTagsForResourceResult result = rdsClient.listTagsForResource(request);
+        return result.getTagList();
+    }
+
     /** {@inheritDoc} */
     @Override
     public void deleteAutoScalingGroup(String asgName) {
@@ -550,6 +627,16 @@ public class AWSClient implements CloudClient {
         AmazonEC2 ec2Client = ec2Client();
         DeleteVolumeRequest request = new DeleteVolumeRequest().withVolumeId(volumeId);
         ec2Client.deleteVolume(request);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void deleteDBInstance(String dbInstanceId) {
+        Validate.notEmpty(dbInstanceId);
+        LOGGER.info(String.format("Deleting DB Instance %s in region %s.", dbInstanceId, region));
+        AmazonRDS rdsClient = rdsClient();
+        DeleteDBInstanceRequest request = new DeleteDBInstanceRequest().withDBInstanceIdentifier(dbInstanceId);
+        rdsClient.deleteDBInstance(request);
     }
 
     /** {@inheritDoc} */
@@ -914,5 +1001,24 @@ public class AWSClient implements CloudClient {
     @Override
     public boolean canChangeInstanceSecurityGroups(String instanceId) {
         return null != getVpcId(instanceId);
+    }
+
+    /**
+     * Gets the account ID of the current user
+     *
+     * @return account ID
+     */
+    String getAccountId() {
+        AmazonIdentityManagementClient iamClient;
+        if (awsCredentialsProvider == null) {
+            iamClient = new AmazonIdentityManagementClient();
+        } else {
+            iamClient = new AmazonIdentityManagementClient(awsCredentialsProvider);
+        }
+        GetUserResult result = iamClient.getUser();
+        User user = result.getUser();
+        String arn = user.getArn();
+        String[] arnparts = arn.split(":");
+        return arnparts[4];
     }
 }

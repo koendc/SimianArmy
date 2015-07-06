@@ -150,6 +150,10 @@ public class TestMonkeyContext implements Monkey.Context {
             }
 
             @Override
+            public void deleteDBInstance(String dbInstanceId) {
+            }
+
+            @Override
             public void deleteLaunchConfiguration(String launchConfigName) {
             }
 

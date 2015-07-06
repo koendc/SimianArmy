@@ -30,12 +30,14 @@ import com.netflix.simianarmy.aws.janitor.EBSVolumeJanitor;
 import com.netflix.simianarmy.aws.janitor.ImageJanitor;
 import com.netflix.simianarmy.aws.janitor.InstanceJanitor;
 import com.netflix.simianarmy.aws.janitor.LaunchConfigJanitor;
+import com.netflix.simianarmy.aws.janitor.RDSInstanceJanitor;
 import com.netflix.simianarmy.aws.janitor.SimpleDBJanitorResourceTracker;
 import com.netflix.simianarmy.aws.janitor.crawler.ASGJanitorCrawler;
 import com.netflix.simianarmy.aws.janitor.crawler.EBSSnapshotJanitorCrawler;
 import com.netflix.simianarmy.aws.janitor.crawler.EBSVolumeJanitorCrawler;
 import com.netflix.simianarmy.aws.janitor.crawler.InstanceJanitorCrawler;
 import com.netflix.simianarmy.aws.janitor.crawler.LaunchConfigJanitorCrawler;
+import com.netflix.simianarmy.aws.janitor.crawler.RDSInstanceJanitorCrawler;
 import com.netflix.simianarmy.aws.janitor.crawler.edda.EddaASGJanitorCrawler;
 import com.netflix.simianarmy.aws.janitor.crawler.edda.EddaEBSSnapshotJanitorCrawler;
 import com.netflix.simianarmy.aws.janitor.crawler.edda.EddaEBSVolumeJanitorCrawler;
@@ -161,6 +163,11 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
         if (enabledResourceSet.contains("IMAGE")) {
             janitors.add(getImageJanitor());
         }
+
+        if (enabledResourceSet.contains("RDS_INSTANCE")) {
+            janitors.add(getRDSInstanceJanitor());
+        }
+
     }
 
     private ASGJanitor getASGJanitor() {
@@ -381,6 +388,30 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
                 monkeyRegion, ruleEngine, crawler, janitorResourceTracker,
                 monkeyCalendar, configuration(), recorder());
         return new ImageJanitor(awsClient(), janitorCtx);
+    }
+
+    private RDSInstanceJanitor getRDSInstanceJanitor() {
+        JanitorRuleEngine ruleEngine = new BasicJanitorRuleEngine();
+        if (configuration().getBoolOrElse("simianarmy.janitor.rule.untaggedRule.enabled", false)) {
+            ruleEngine.addRule(new UntaggedRule(monkeyCalendar, getPropertySet("simianarmy.janitor.rule.untaggedRule.requiredTags"),
+                    (int) configuration().getNumOrElse(
+                            "simianarmy.janitor.rule.untaggedRule.retentionDaysWithOwner", 3),
+                            (int) configuration().getNumOrElse(
+                                    "simianarmy.janitor.rule.untaggedRule.retentionDaysWithoutOwner",
+                                    8)));
+        }
+
+        JanitorCrawler rdsInstanceCrawler;
+        if (configuration().getBoolOrElse("simianarmy.janitor.edda.enabled", false)) {
+            throw new RuntimeException("RDS Instance Janitor only works when Edda is disabled. Edda is not yet implented for RDS.");
+        } else {
+            rdsInstanceCrawler = new RDSInstanceJanitorCrawler(awsClient());
+        }
+        rdsInstanceCrawler = new RDSInstanceJanitorCrawler(awsClient());
+        BasicJanitorContext rdsInstanceJanitorCtx = new BasicJanitorContext(
+                monkeyRegion, ruleEngine, rdsInstanceCrawler, janitorResourceTracker,
+                monkeyCalendar, configuration(), recorder());
+        return new RDSInstanceJanitor(awsClient(), rdsInstanceJanitorCtx);
     }
 
     private EddaClient createEddaClient() {

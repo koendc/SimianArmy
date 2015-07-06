@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.netflix.simianarmy.MonkeyCalendar;
 import com.netflix.simianarmy.Resource;
 import com.netflix.simianarmy.aws.AWSResource;
+import com.netflix.simianarmy.aws.janitor.crawler.RDSInstanceJanitorCrawler;
 import com.netflix.simianarmy.janitor.Rule;
 
 /**

@@ -92,6 +92,7 @@ public class TestUntaggedRule {
         Resource asgResource = new AWSResource().withId("my-cool-asg").withResourceType(AWSResourceType.ASG);
         Resource ebsSnapshotResource = new AWSResource().withId("snap-123123").withResourceType(AWSResourceType.EBS_SNAPSHOT);
         Resource lauchConfigurationResource = new AWSResource().withId("my-cool-launch-configuration").withResourceType(AWSResourceType.LAUNCH_CONFIG);
+        Resource rdsInstanceResource = new AWSResource().withId("my-cool-launch-configuration").withResourceType(AWSResourceType.RDS_INSTANCE);
         Set<String> tags = new HashSet<String>();
         tags.add("tag1");
         tags.add("tag2");
@@ -102,10 +103,12 @@ public class TestUntaggedRule {
         Assert.assertFalse(rule.isValid(asgResource));
         Assert.assertFalse(rule.isValid(ebsSnapshotResource));
         Assert.assertFalse(rule.isValid(lauchConfigurationResource));
+        Assert.assertFalse(rule.isValid(rdsInstanceResource));
         TestUtils.verifyTerminationTimeRough(imageResource, retentionDaysWithoutOwner, now);
         TestUtils.verifyTerminationTimeRough(asgResource, retentionDaysWithoutOwner, now);
         TestUtils.verifyTerminationTimeRough(ebsSnapshotResource, retentionDaysWithoutOwner, now);
         TestUtils.verifyTerminationTimeRough(lauchConfigurationResource, retentionDaysWithoutOwner, now);
+        TestUtils.verifyTerminationTimeRough(rdsInstanceResource, retentionDaysWithoutOwner, now);
     }
 
     @Test

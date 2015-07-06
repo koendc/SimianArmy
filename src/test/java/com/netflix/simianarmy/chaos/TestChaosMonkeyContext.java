@@ -242,6 +242,10 @@ public class TestChaosMonkeyContext extends TestMonkeyContext implements ChaosMo
             }
 
             @Override
+            public void deleteDBInstance(String dbInstanceId) {
+            }
+
+            @Override
             public void deleteLaunchConfiguration(String launchConfigName) {
             }
 

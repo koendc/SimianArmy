@@ -39,5 +39,7 @@ public enum AWSResourceType implements ResourceType {
     /** AWS security group. */
     SECURITY_GROUP,
     /** AWS Amazon Amazon Machine Image. **/
-    IMAGE
+    IMAGE,
+    /** AWS RDS Instance **/
+    RDS_INSTANCE,
 }

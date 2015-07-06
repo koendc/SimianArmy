@@ -81,6 +81,13 @@ public interface CloudClient {
      */
      void deleteImage(String imageId);
 
+     /** Deletes a database instance.
+     *
+     * @param dbInstanceId
+     *          the instance id.
+     */
+     void deleteDBInstance(String dbInstanceId);
+
      /**
      * Adds or overwrites tags for the specified resources.
      *
