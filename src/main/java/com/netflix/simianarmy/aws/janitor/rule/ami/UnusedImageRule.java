@@ -38,7 +38,7 @@ public class UnusedImageRule  implements Rule {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnusedImageRule.class);
 
     private final MonkeyCalendar calendar;
-    private final int retentionDays;
+    private final int retentionMinutes;
     private final int lastReferenceDaysThreshold;
 
     /**
@@ -46,18 +46,18 @@ public class UnusedImageRule  implements Rule {
      *
      * @param calendar
      *            The calendar used to calculate the termination time
-     * @param retentionDays
-     *            The number of days that the marked ASG is retained before being terminated
+     * @param retentionMinutes
+     *            The number of minutes that the marked ASG is retained before being terminated
      * @param lastReferenceDaysThreshold
      *            The number of days that the image has been not referenced that makes the ASG be
      *            considered obsolete
      */
-    public UnusedImageRule(MonkeyCalendar calendar, int retentionDays, int lastReferenceDaysThreshold) {
+    public UnusedImageRule(MonkeyCalendar calendar, int retentionMinutes, int lastReferenceDaysThreshold) {
         Validate.notNull(calendar);
-        Validate.isTrue(retentionDays >= 0);
+        Validate.isTrue(retentionMinutes >= 0);
         Validate.isTrue(lastReferenceDaysThreshold >= 0);
         this.calendar = calendar;
-        this.retentionDays = retentionDays;
+        this.retentionMinutes = retentionMinutes;
         this.lastReferenceDaysThreshold = lastReferenceDaysThreshold;
     }
 
@@ -82,10 +82,10 @@ public class UnusedImageRule  implements Rule {
         long windowStart = new DateTime(now.getTime()).minusDays(lastReferenceDaysThreshold).getMillis();
         if (instanceRefTime < windowStart && lcRefTime < windowStart) {
             if (resource.getExpectedTerminationTime() == null) {
-                Date terminationTime = calendar.getBusinessDay(now, retentionDays);
+                Date terminationTime = calendar.getBusinessDay(now, retentionMinutes);
                 resource.setExpectedTerminationTime(terminationTime);
                 resource.setTerminationReason(String.format("Image not referenced for %d days",
-                        lastReferenceDaysThreshold + retentionDays));
+                        lastReferenceDaysThreshold + retentionMinutes));
                 LOGGER.info(String.format(
                         "Image %s in region %s is marked to be cleaned at %s as it is not referenced"
                                + "for more than %d days",

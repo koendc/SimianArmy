@@ -141,7 +141,7 @@ public class TestBasicCalendar extends BasicCalendar {
         int day = test.get(Calendar.DAY_OF_MONTH);
         for (int n = 0; n <= 4; n++) {
             Calendar businessDay = now();
-            businessDay.setTime(getBusinessDay(test.getTime(), n));
+            businessDay.setTime(getBusinessDay(test.getTime(), n * 60 * 24));
             Assert.assertEquals(businessDay.get(Calendar.DAY_OF_MONTH),
                     day + n);
             Assert.assertEquals(businessDay.get(Calendar.HOUR_OF_DAY),
@@ -161,7 +161,7 @@ public class TestBasicCalendar extends BasicCalendar {
         int day = test.get(Calendar.DAY_OF_MONTH);
         for (int n = 1; n <= 5; n++) {
             Calendar businessDay = now();
-            businessDay.setTime(getBusinessDay(test.getTime(), n));
+            businessDay.setTime(getBusinessDay(test.getTime(), n * 60 * 24));
             Assert.assertEquals(businessDay.get(Calendar.DAY_OF_MONTH),
                     day + n + 2);
             Assert.assertEquals(businessDay.get(Calendar.HOUR_OF_DAY),
@@ -181,11 +181,11 @@ public class TestBasicCalendar extends BasicCalendar {
         int day = test.get(Calendar.DAY_OF_MONTH);
 
         Calendar businessDay = now();
-        businessDay.setTime(getBusinessDay(test.getTime(), 1));
+        businessDay.setTime(getBusinessDay(test.getTime(), 1 * 60 * 24));
         Assert.assertEquals(businessDay.get(Calendar.DAY_OF_MONTH),
                 day + 4);
         Assert.assertEquals(businessDay.get(Calendar.HOUR_OF_DAY),
-                hour);
+                0);
     }
 
     @Test
@@ -199,7 +199,7 @@ public class TestBasicCalendar extends BasicCalendar {
         test.set(Calendar.HOUR_OF_DAY, hour);
 
         Calendar businessDay = now();
-        businessDay.setTime(getBusinessDay(test.getTime(), 1));
+        businessDay.setTime(getBusinessDay(test.getTime(), 1 * 60 * 24));
         // The next business day should be 1/2/2013
         Assert.assertEquals(businessDay.get(Calendar.YEAR), 2013);
         Assert.assertEquals(businessDay.get(Calendar.MONTH), Calendar.JANUARY);

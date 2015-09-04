@@ -48,7 +48,7 @@ public class OldDetachedVolumeRule implements Rule {
 
     private final int detachDaysThreshold;
 
-    private final int retentionDays;
+    private final int retentionMinutes;
 
     /** The date format used to print or parse the user specified termination date. **/
     public static final DateTimeFormatter TERMINATION_DATE_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd");
@@ -61,17 +61,17 @@ public class OldDetachedVolumeRule implements Rule {
      *            The calendar used to calculate the termination time
      * @param detachDaysThreshold
      *            The number of days that a volume is considered as cleanup candidate since it is detached
-     * @param retentionDays
-     *            The number of days that the volume is retained before being terminated after being marked
+     * @param retentionMinutes
+     *            The number of minutes that the volume is retained before being terminated after being marked
      *            as cleanup candidate
      */
-    public OldDetachedVolumeRule(MonkeyCalendar calendar, int detachDaysThreshold, int retentionDays) {
+    public OldDetachedVolumeRule(MonkeyCalendar calendar, int detachDaysThreshold, int retentionMinutes) {
         Validate.notNull(calendar);
         Validate.isTrue(detachDaysThreshold >= 0);
-        Validate.isTrue(retentionDays >= 0);
+        Validate.isTrue(retentionMinutes >= 0);
         this.calendar = calendar;
         this.detachDaysThreshold = detachDaysThreshold;
-        this.retentionDays = retentionDays;
+        this.retentionMinutes = retentionMinutes;
     }
 
     @Override
@@ -125,10 +125,10 @@ public class OldDetachedVolumeRule implements Rule {
         DateTime now = new DateTime(calendar.now().getTimeInMillis());
         if (detachTime != null && detachTime.plusDays(detachDaysThreshold).isBefore(now)) {
             if (resource.getExpectedTerminationTime() == null) {
-                Date terminationTime = calendar.getBusinessDay(new Date(now.getMillis()), retentionDays);
+                Date terminationTime = calendar.getBusinessDay(new Date(now.getMillis()), retentionMinutes);
                 resource.setExpectedTerminationTime(terminationTime);
                 resource.setTerminationReason(String.format("Volume not attached for %d days",
-                        detachDaysThreshold + retentionDays));
+                        detachDaysThreshold + retentionMinutes));
                 LOGGER.info(String.format(
                         "Volume %s is marked to be cleaned at %s as it is detached for more than %d days",
                         resource.getId(), resource.getExpectedTerminationTime(), detachDaysThreshold));

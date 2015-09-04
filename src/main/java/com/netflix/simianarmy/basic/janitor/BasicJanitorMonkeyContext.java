@@ -107,7 +107,7 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
 
     private final String ownerEmailDomain;
 
-    private final int daysBeforeTermination;
+    private final int minutesBeforeTermination;
 
     /**
      * The constructor.
@@ -134,8 +134,8 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
                 configuration().getStrOrElse("simianarmy.janitor.notification.ccEmails", ""), ",");
         sourceEmail = configuration().getStrOrElse("simianarmy.janitor.notification.sourceEmail", "");
         ownerEmailDomain = configuration().getStrOrElse("simianarmy.janitor.notification.ownerEmailDomain", "");
-        daysBeforeTermination =
-                (int) configuration().getNumOrElse("simianarmy.janitor.notification.daysBeforeTermination", 3);
+        minutesBeforeTermination =
+                (int) configuration().getNumOrElse("simianarmy.janitor.notification.minutesBeforeTermination", 3 * 60 * 24);
 
         emailNotifier = new JanitorEmailNotifier(getJanitorEmailNotifierContext());
 
@@ -186,7 +186,7 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
                     (int) configuration().getNumOrElse(
                             "simianarmy.janitor.rule.oldEmptyASGRule.launchConfigAgeThreshold", 50),
                             (int) configuration().getNumOrElse(
-                                    "simianarmy.janitor.rule.oldEmptyASGRule.retentionDays", 10),
+                                    "simianarmy.janitor.rule.oldEmptyASGRule.retentionMinutes", 10 * 60 * 24),
                                     instanceValidator
                     ));
         }
@@ -196,17 +196,17 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
                     (int) configuration().getNumOrElse(
                             "simianarmy.janitor.rule.suspendedASGRule.suspensionAgeThreshold", 2),
                             (int) configuration().getNumOrElse(
-                                    "simianarmy.janitor.rule.suspendedASGRule.retentionDays", 5),
+                                    "simianarmy.janitor.rule.suspendedASGRule.retentionMinutes", 5 * 60 * 24),
                                     instanceValidator
                     ));
         }
         if (configuration().getBoolOrElse("simianarmy.janitor.rule.untaggedRule.enabled", false)) {
             ruleEngine.addRule(new UntaggedRule(monkeyCalendar, getPropertySet("simianarmy.janitor.rule.untaggedRule.requiredTags"),
                     (int) configuration().getNumOrElse(
-                            "simianarmy.janitor.rule.untaggedRule.retentionDaysWithOwner", 3),
+                            "simianarmy.janitor.rule.untaggedRule.retentionMinutesWithOwner", 3 * 60 * 24),
                             (int) configuration().getNumOrElse(
-                                    "simianarmy.janitor.rule.untaggedRule.retentionDaysWithoutOwner",
-                                    8)));
+                                    "simianarmy.janitor.rule.untaggedRule.retentionMinutesWithoutOwner",
+                                    8 * 60 * 24)));
         }
 
         JanitorCrawler crawler;
@@ -228,10 +228,10 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
                     (int) configuration().getNumOrElse(
                             "simianarmy.janitor.rule.orphanedInstanceRule.instanceAgeThreshold", 2),
                             (int) configuration().getNumOrElse(
-                                    "simianarmy.janitor.rule.orphanedInstanceRule.retentionDaysWithOwner", 3),
+                                    "simianarmy.janitor.rule.orphanedInstanceRule.retentionMinutesWithOwner", 3 * 60 * 24),
                                     (int) configuration().getNumOrElse(
-                                            "simianarmy.janitor.rule.orphanedInstanceRule.retentionDaysWithoutOwner",
-                                            8),
+                                            "simianarmy.janitor.rule.orphanedInstanceRule.retentionMinutesWithoutOwner",
+                                            8 * 60 * 24),
                                     configuration().getBoolOrElse(
                                             "simianarmy.janitor.rule.orphanedInstanceRule.opsworks.parentage",
                                             false)));
@@ -239,10 +239,10 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
         if (configuration().getBoolOrElse("simianarmy.janitor.rule.untaggedRule.enabled", false)) {
             ruleEngine.addRule(new UntaggedRule(monkeyCalendar, getPropertySet("simianarmy.janitor.rule.untaggedRule.requiredTags"),
                     (int) configuration().getNumOrElse(
-                            "simianarmy.janitor.rule.untaggedRule.retentionDaysWithOwner", 3),
+                            "simianarmy.janitor.rule.untaggedRule.retentionMinutesWithOwner", 3 * 60 * 24),
                             (int) configuration().getNumOrElse(
-                                    "simianarmy.janitor.rule.untaggedRule.retentionDaysWithoutOwner",
-                                    8)));
+                                    "simianarmy.janitor.rule.untaggedRule.retentionMinutesWithoutOwner",
+                                    8 * 60 * 24)));
         }
 
         JanitorCrawler instanceCrawler;
@@ -264,21 +264,21 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
                     (int) configuration().getNumOrElse(
                             "simianarmy.janitor.rule.oldDetachedVolumeRule.detachDaysThreshold", 30),
                             (int) configuration().getNumOrElse(
-                                    "simianarmy.janitor.rule.oldDetachedVolumeRule.retentionDays", 7)));
+                                    "simianarmy.janitor.rule.oldDetachedVolumeRule.retentionMinutes", 7 * 60 * 24)));
 
             if (configuration().getBoolOrElse("simianarmy.janitor.edda.enabled", false)
                 && configuration().getBoolOrElse("simianarmy.janitor.rule.deleteOnTerminationRule.enabled", false)) {
                 ruleEngine.addRule(new DeleteOnTerminationRule(monkeyCalendar, (int) configuration().getNumOrElse(
-                        "simianarmy.janitor.rule.deleteOnTerminationRule.retentionDays", 3)));
+                        "simianarmy.janitor.rule.deleteOnTerminationRule.retentionMinutes", 3 * 60 * 24)));
             }
         }
         if (configuration().getBoolOrElse("simianarmy.janitor.rule.untaggedRule.enabled", false)) {
             ruleEngine.addRule(new UntaggedRule(monkeyCalendar, getPropertySet("simianarmy.janitor.rule.untaggedRule.requiredTags"),
                     (int) configuration().getNumOrElse(
-                            "simianarmy.janitor.rule.untaggedRule.retentionDaysWithOwner", 3),
+                            "simianarmy.janitor.rule.untaggedRule.retentionMinutesWithOwner", 3 * 60 * 24),
                             (int) configuration().getNumOrElse(
-                                    "simianarmy.janitor.rule.untaggedRule.retentionDaysWithoutOwner",
-                                    8)));
+                                    "simianarmy.janitor.rule.untaggedRule.retentionMinutesWithoutOwner",
+                                    8 * 60 * 24)));
         }
 
         JanitorCrawler volumeCrawler;
@@ -300,15 +300,15 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
             ruleEngine.addRule(new NoGeneratedAMIRule(monkeyCalendar,
                     (int) configuration().getNumOrElse("simianarmy.janitor.rule.noGeneratedAMIRule.ageThreshold", 30),
                     (int) configuration().getNumOrElse(
-                            "simianarmy.janitor.rule.noGeneratedAMIRule.retentionDays", 7)));
+                            "simianarmy.janitor.rule.noGeneratedAMIRule.retentionMinutes", 7 * 60 * 24)));
         }
         if (configuration().getBoolOrElse("simianarmy.janitor.rule.untaggedRule.enabled", false)) {
             ruleEngine.addRule(new UntaggedRule(monkeyCalendar, getPropertySet("simianarmy.janitor.rule.untaggedRule.requiredTags"),
                     (int) configuration().getNumOrElse(
-                            "simianarmy.janitor.rule.untaggedRule.retentionDaysWithOwner", 3),
+                            "simianarmy.janitor.rule.untaggedRule.retentionMinutesWithOwner", 3 * 60 * 24),
                             (int) configuration().getNumOrElse(
-                                    "simianarmy.janitor.rule.untaggedRule.retentionDaysWithoutOwner",
-                                    8)));
+                                    "simianarmy.janitor.rule.untaggedRule.retentionMinutesWithoutOwner",
+                                    8 * 60 * 24)));
         }
 
         JanitorCrawler snapshotCrawler;
@@ -332,15 +332,15 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
                     (int) configuration().getNumOrElse(
                             "simianarmy.janitor.rule.oldUnusedLaunchConfigRule.ageThreshold", 4),
                     (int) configuration().getNumOrElse(
-                            "simianarmy.janitor.rule.oldUnusedLaunchConfigRule.retentionDays", 3)));
+                            "simianarmy.janitor.rule.oldUnusedLaunchConfigRule.retentionMinutes", 3 * 60 * 24)));
         }
         if (configuration().getBoolOrElse("simianarmy.janitor.rule.untaggedRule.enabled", false)) {
             ruleEngine.addRule(new UntaggedRule(monkeyCalendar, getPropertySet("simianarmy.janitor.rule.untaggedRule.requiredTags"),
                     (int) configuration().getNumOrElse(
-                            "simianarmy.janitor.rule.untaggedRule.retentionDaysWithOwner", 3),
+                            "simianarmy.janitor.rule.untaggedRule.retentionMinutesWithOwner", 3 * 60 * 24),
                             (int) configuration().getNumOrElse(
-                                    "simianarmy.janitor.rule.untaggedRule.retentionDaysWithoutOwner",
-                                    8)));
+                                    "simianarmy.janitor.rule.untaggedRule.retentionMinutesWithoutOwner",
+                                    8 * 60 * 24)));
         }
 
         JanitorCrawler crawler;
@@ -371,17 +371,17 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
         if (configuration().getBoolOrElse("simianarmy.janitor.rule.unusedImageRule.enabled", false)) {
             ruleEngine.addRule(new UnusedImageRule(monkeyCalendar,
                     (int) configuration().getNumOrElse(
-                            "simianarmy.janitor.rule.unusedImageRule.retentionDays", 3),
+                            "simianarmy.janitor.rule.unusedImageRule.retentionMinutes", 3 * 60 * 24),
                     (int) configuration().getNumOrElse(
                             "simianarmy.janitor.rule.unusedImageRule.lastReferenceDaysThreshold", 45)));
         }
         if (configuration().getBoolOrElse("simianarmy.janitor.rule.untaggedRule.enabled", false)) {
             ruleEngine.addRule(new UntaggedRule(monkeyCalendar, getPropertySet("simianarmy.janitor.rule.untaggedRule.requiredTags"),
                     (int) configuration().getNumOrElse(
-                            "simianarmy.janitor.rule.untaggedRule.retentionDaysWithOwner", 3),
+                            "simianarmy.janitor.rule.untaggedRule.retentionMinutesWithOwner", 3 * 60 * 24),
                             (int) configuration().getNumOrElse(
-                                    "simianarmy.janitor.rule.untaggedRule.retentionDaysWithoutOwner",
-                                    8)));
+                                    "simianarmy.janitor.rule.untaggedRule.retentionMinutesWithoutOwner",
+                                    8 * 60 * 24)));
         }
 
         BasicJanitorContext janitorCtx = new BasicJanitorContext(
@@ -456,8 +456,8 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
             }
 
             @Override
-            public int daysBeforeTermination() {
-                return daysBeforeTermination;
+            public int minutesBeforeTermination() {
+                return minutesBeforeTermination;
             }
 
             @Override

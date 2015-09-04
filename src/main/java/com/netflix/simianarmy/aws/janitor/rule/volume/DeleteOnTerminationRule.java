@@ -46,7 +46,7 @@ public class DeleteOnTerminationRule implements Rule {
 
     private final MonkeyCalendar calendar;
 
-    private final int retentionDays;
+    private final int retentionMinutes;
 
     /** The date format used to print or parse the user specified termination date. **/
     private static final DateTimeFormatter TERMINATION_DATE_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd");
@@ -61,15 +61,15 @@ public class DeleteOnTerminationRule implements Rule {
      *
      * @param calendar
      *            The calendar used to calculate the termination time
-     * @param retentionDays
-     *            The number of days that the volume is retained before being terminated after being marked
+     * @param retentionMinutes
+     *            The number of minutes that the volume is retained before being terminated after being marked
      *            as cleanup candidate
      */
-    public DeleteOnTerminationRule(MonkeyCalendar calendar, int retentionDays) {
+    public DeleteOnTerminationRule(MonkeyCalendar calendar, int retentionMinutes) {
         Validate.notNull(calendar);
-        Validate.isTrue(retentionDays >= 0);
+        Validate.isTrue(retentionMinutes >= 0);
         this.calendar = calendar;
-        this.retentionDays = retentionDays;
+        this.retentionMinutes = retentionMinutes;
     }
 
     @Override
@@ -104,7 +104,7 @@ public class DeleteOnTerminationRule implements Rule {
 
         if ("true".equals(resource.getAdditionalField(EddaEBSVolumeJanitorCrawler.DELETE_ON_TERMINATION))) {
             if (resource.getExpectedTerminationTime() == null) {
-                Date terminationTime = calendar.getBusinessDay(calendar.now().getTime(), retentionDays);
+                Date terminationTime = calendar.getBusinessDay(calendar.now().getTime(), retentionMinutes);
                 resource.setExpectedTerminationTime(terminationTime);
                 resource.setTerminationReason(TERMINATION_REASON);
                 LOGGER.info(String.format(

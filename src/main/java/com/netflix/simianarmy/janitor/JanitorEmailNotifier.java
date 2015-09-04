@@ -54,7 +54,7 @@ public class JanitorEmailNotifier extends AWSEmailNotifier {
     private final JanitorResourceTracker resourceTracker;
     private final JanitorEmailBuilder emailBuilder;
     private final MonkeyCalendar calendar;
-    private final int daysBeforeTermination;
+    private final int minutesBeforeTermination;
     private final String sourceEmail;
     private final String ownerEmailDomain;
     private final Map<String, Collection<Resource>> invalidEmailToResources =
@@ -86,7 +86,7 @@ public class JanitorEmailNotifier extends AWSEmailNotifier {
          * Gets the number of days a notification is sent before the expected termination date..
          * @return the number of days a notification is sent before the expected termination date.
          */
-        int daysBeforeTermination();
+        int minutesBeforeTermination();
 
         /**
          * Gets the region the notifier is running in.
@@ -128,7 +128,7 @@ public class JanitorEmailNotifier extends AWSEmailNotifier {
         super(ctx.sesClient());
         this.region = ctx.region();
         this.defaultEmail = ctx.defaultEmail();
-        this.daysBeforeTermination = ctx.daysBeforeTermination();
+        this.minutesBeforeTermination = ctx.minutesBeforeTermination();
         this.resourceTracker = ctx.resourceTracker();
         this.emailBuilder = ctx.emailBuilder();
         this.calendar = ctx.calendar();
@@ -241,9 +241,9 @@ public class JanitorEmailNotifier extends AWSEmailNotifier {
         // We don't want to send notification too early (since things may change) or too late (we need
         // to give owners enough time to take actions.
         Date windowStart = new Date(new DateTime(
-                calendar.getBusinessDay(calendar.now().getTime(), daysBeforeTermination).getTime())
+                calendar.getBusinessDay(calendar.now().getTime(), minutesBeforeTermination).getTime())
                 .minusHours(HOURS_IN_MARGIN).getMillis());
-        Date windowEnd = calendar.getBusinessDay(calendar.now().getTime(), daysBeforeTermination + 1);
+        Date windowEnd = calendar.getBusinessDay(calendar.now().getTime(), minutesBeforeTermination + HOURS_IN_MARGIN*60);
         Date terminationDate = resource.getExpectedTerminationTime();
         if (notificationTime == null
                 || resource.getMarkTime().after(notificationTime)) { // remarked after a notification
@@ -253,9 +253,9 @@ public class JanitorEmailNotifier extends AWSEmailNotifier {
             } else if (terminationDate.before(windowStart)) {
                 // The expected termination date is too close. To give the owner time to take possible actions,
                 // we extend the expected termination time here.
-                LOGGER.info(String.format("It is less than %d days before the expected termination date,"
+                LOGGER.info(String.format("It is less than %d minutes before the expected termination date,"
                         + " of resource %s, extending the termination time to %s.",
-                        daysBeforeTermination, resource.getId(), windowStart));
+                        minutesBeforeTermination, resource.getId(), windowStart));
                 resource.setExpectedTerminationTime(windowStart);
                 resourceTracker.addOrUpdate(resource);
                 return true;

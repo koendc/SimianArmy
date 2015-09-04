@@ -39,7 +39,7 @@ import java.util.Date;
 public class OldEmptyASGRule implements Rule {
 
     private final MonkeyCalendar calendar;
-    private final int retentionDays;
+    private final int retentionMinutes;
     private final int launchConfigAgeThreshold;
     private final Integer lastChangeDaysThreshold;
     private final ASGInstanceValidator instanceValidator;
@@ -52,8 +52,8 @@ public class OldEmptyASGRule implements Rule {
      *
      * @param calendar
      *            The calendar used to calculate the termination time
-     * @param retentionDays
-     *            The number of days that the marked ASG is retained before being terminated
+     * @param retentionMinutes
+     *            The number of minutes that the marked ASG is retained before being terminated
      * @param launchConfigAgeThreshold
      *            The number of days that the launch configuration for the ASG has been created that makes the ASG be
      *            considered obsolete
@@ -61,8 +61,8 @@ public class OldEmptyASGRule implements Rule {
      *            The instance validator to check if an instance is active
      */
     public OldEmptyASGRule(MonkeyCalendar calendar, int launchConfigAgeThreshold,
-                           int retentionDays, ASGInstanceValidator instanceValidator) {
-        this(calendar, launchConfigAgeThreshold, null, retentionDays, instanceValidator);
+                           int retentionMinutes, ASGInstanceValidator instanceValidator) {
+        this(calendar, launchConfigAgeThreshold, null, retentionMinutes, instanceValidator);
     }
 
     /**
@@ -70,8 +70,8 @@ public class OldEmptyASGRule implements Rule {
      *
      * @param calendar
      *            The calendar used to calculate the termination time
-     * @param retentionDays
-     *            The number of days that the marked ASG is retained before being terminated
+     * @param retentionMinutes
+     *            The number of minutes that the marked ASG is retained before being terminated
      * @param launchConfigAgeThreshold
      *            The number of days that the launch configuration for the ASG has been created that makes the ASG be
      *            considered obsolete
@@ -82,14 +82,14 @@ public class OldEmptyASGRule implements Rule {
      *            The instance validator to check if an instance is active
      */
     public OldEmptyASGRule(MonkeyCalendar calendar, int launchConfigAgeThreshold, Integer lastChangeDaysThreshold,
-                           int retentionDays, ASGInstanceValidator instanceValidator) {
+                           int retentionMinutes, ASGInstanceValidator instanceValidator) {
         Validate.notNull(calendar);
-        Validate.isTrue(retentionDays >= 0);
+        Validate.isTrue(retentionMinutes >= 0);
         Validate.isTrue(launchConfigAgeThreshold >= 0);
         Validate.isTrue(lastChangeDaysThreshold == null || lastChangeDaysThreshold >= 0);
         Validate.notNull(instanceValidator);
         this.calendar = calendar;
-        this.retentionDays = retentionDays;
+        this.retentionMinutes = retentionMinutes;
         this.launchConfigAgeThreshold = launchConfigAgeThreshold;
         this.lastChangeDaysThreshold = lastChangeDaysThreshold;
         this.instanceValidator = instanceValidator;
@@ -154,11 +154,11 @@ public class OldEmptyASGRule implements Rule {
 
     private void markResource(Resource resource, DateTime now) {
         if (resource.getExpectedTerminationTime() == null) {
-            Date terminationTime = calendar.getBusinessDay(new Date(now.getMillis()), retentionDays);
+            Date terminationTime = calendar.getBusinessDay(new Date(now.getMillis()), retentionMinutes);
             resource.setExpectedTerminationTime(terminationTime);
             resource.setTerminationReason(String.format(
                     "Launch config older than %d days. Not in Discovery. No ELB.",
-                    launchConfigAgeThreshold + retentionDays));
+                    launchConfigAgeThreshold + retentionMinutes));
         } else {
             LOGGER.info(String.format("Resource %s is already marked as cleanup candidate.", resource.getId()));
         }

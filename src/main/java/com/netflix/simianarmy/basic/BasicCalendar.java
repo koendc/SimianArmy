@@ -269,7 +269,7 @@ public class BasicCalendar implements MonkeyCalendar {
         Calendar calendar = now();
         calendar.setTime(date);
         while (isHoliday(calendar) || isWeekend(calendar) || n-- > 0) {
-            calendar.add(Calendar.DATE, 1);
+            calendar.add(Calendar.MINUTE, 1);
         }
         return calendar.getTime();
     }

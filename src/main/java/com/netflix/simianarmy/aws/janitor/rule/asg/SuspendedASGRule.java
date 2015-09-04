@@ -38,7 +38,7 @@ import java.util.Date;
 public class SuspendedASGRule implements Rule {
 
     private final MonkeyCalendar calendar;
-    private final int retentionDays;
+    private final int retentionMinutes;
     private final int suspensionAgeThreshold;
     private final ASGInstanceValidator instanceValidator;
 
@@ -50,8 +50,8 @@ public class SuspendedASGRule implements Rule {
      *
      * @param calendar
      *            The calendar used to calculate the termination time
-     * @param retentionDays
-     *            The number of days that the marked ASG is retained before being terminated after
+     * @param retentionMinutes
+     *            The number of minutes that the marked ASG is retained before being terminated after
      *            being marked
      * @param suspensionAgeThreshold
      *            The number of days that the ASG has been suspended from ELB that makes the ASG be
@@ -59,14 +59,14 @@ public class SuspendedASGRule implements Rule {
      * @param instanceValidator
      *            The instance validator to check if an instance is active
      */
-    public SuspendedASGRule(MonkeyCalendar calendar, int suspensionAgeThreshold, int retentionDays,
+    public SuspendedASGRule(MonkeyCalendar calendar, int suspensionAgeThreshold, int retentionMinutes,
                             ASGInstanceValidator instanceValidator) {
         Validate.notNull(calendar);
-        Validate.isTrue(retentionDays >= 0);
+        Validate.isTrue(retentionMinutes >= 0);
         Validate.isTrue(suspensionAgeThreshold >= 0);
         Validate.notNull(instanceValidator);
         this.calendar = calendar;
-        this.retentionDays = retentionDays;
+        this.retentionMinutes = retentionMinutes;
         this.suspensionAgeThreshold = suspensionAgeThreshold;
         this.instanceValidator = instanceValidator;
     }
@@ -95,11 +95,11 @@ public class SuspendedASGRule implements Rule {
             LOGGER.info(String.format("The ASG %s has been suspended for more than %d days",
                     resource.getId(), suspensionAgeThreshold));
             if (resource.getExpectedTerminationTime() == null) {
-                Date terminationTime = calendar.getBusinessDay(new Date(now.getMillis()), retentionDays);
+                Date terminationTime = calendar.getBusinessDay(new Date(now.getMillis()), retentionMinutes);
                 resource.setExpectedTerminationTime(terminationTime);
                 resource.setTerminationReason(String.format(
                         "User suspended age more than %d days and all instances are out of service in Discovery",
-                        suspensionAgeThreshold + retentionDays));
+                        suspensionAgeThreshold + retentionMinutes));
             }
             return false;
         } else {

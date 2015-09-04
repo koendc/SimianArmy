@@ -61,25 +61,25 @@ public class OrphanedInstanceRule implements Rule {
      *            The calendar used to calculate the termination time
      * @param instanceAgeThreshold
      *            The number of days that an instance is considered as orphaned since it is launched
-     * @param retentionDaysWithOwner
-     *            The number of days that the orphaned instance is retained before being terminated
+     * @param retentionMinutesWithOwner
+     *            The number of minutes that the orphaned instance is retained before being terminated
      *            when the instance has an owner specified
-     * @param retentionDaysWithoutOwner
-     *            The number of days that the orphaned instance is retained before being terminated
+     * @param retentionMinutesWithoutOwner
+     *            The number of minutes that the orphaned instance is retained before being terminated
      *            when the instance has no owner specified
      * @param respectOpsWorksParentage
      *            If true, don't consider members of an OpsWorks stack as orphans 
      */
     public OrphanedInstanceRule(MonkeyCalendar calendar,
-            int instanceAgeThreshold, int retentionDaysWithOwner, int retentionDaysWithoutOwner, boolean respectOpsWorksParentage) {
+            int instanceAgeThreshold, int retentionMinutesWithOwner, int retentionMinutesWithoutOwner, boolean respectOpsWorksParentage) {
         Validate.notNull(calendar);
         Validate.isTrue(instanceAgeThreshold >= 0);
-        Validate.isTrue(retentionDaysWithOwner >= 0);
-        Validate.isTrue(retentionDaysWithoutOwner >= 0);
+        Validate.isTrue(retentionMinutesWithOwner >= 0);
+        Validate.isTrue(retentionMinutesWithoutOwner >= 0);
         this.calendar = calendar;
         this.instanceAgeThreshold = instanceAgeThreshold;
-        this.retentionDaysWithOwner = retentionDaysWithOwner;
-        this.retentionDaysWithoutOwner = retentionDaysWithoutOwner;
+        this.retentionDaysWithOwner = retentionMinutesWithOwner;
+        this.retentionDaysWithoutOwner = retentionMinutesWithoutOwner;
         this.respectOpsWorksParentage = respectOpsWorksParentage;
     }
     

@@ -46,7 +46,7 @@ public class OldUnusedLaunchConfigRule implements Rule {
 
     private final int ageThreshold;
 
-    private final int retentionDays;
+    private final int retentionMinutes;
 
     /**
      * Constructor for OrphanedInstanceRule.
@@ -56,16 +56,16 @@ public class OldUnusedLaunchConfigRule implements Rule {
      * @param ageThreshold
      *            The number of days that a launch configuration is considered as a cleanup candidate
      *            since it is created
-     * @param retentionDays
-     *            The number of days that the unused launch configuration is retained before being terminated
+     * @param retentionMinutes
+     *            The number of minutes that the unused launch configuration is retained before being terminated
      */
-    public OldUnusedLaunchConfigRule(MonkeyCalendar calendar, int ageThreshold, int retentionDays) {
+    public OldUnusedLaunchConfigRule(MonkeyCalendar calendar, int ageThreshold, int retentionMinutes) {
         Validate.notNull(calendar);
         Validate.isTrue(ageThreshold >= 0);
-        Validate.isTrue(retentionDays >= 0);
+        Validate.isTrue(retentionMinutes >= 0);
         this.calendar = calendar;
         this.ageThreshold = ageThreshold;
-        this.retentionDays = retentionDays;
+        this.retentionMinutes = retentionMinutes;
     }
 
     @Override
@@ -91,7 +91,7 @@ public class OldUnusedLaunchConfigRule implements Rule {
                 LOGGER.info(String.format("The unused launch config %s has been created for more than %d days",
                         resource.getId(), ageThreshold));
                 if (resource.getExpectedTerminationTime() == null) {
-                    Date terminationTime = calendar.getBusinessDay(new Date(now.getMillis()), retentionDays);
+                    Date terminationTime = calendar.getBusinessDay(new Date(now.getMillis()), retentionMinutes);
                     resource.setExpectedTerminationTime(terminationTime);
                     resource.setTerminationReason(TERMINATION_REASON);
                 }

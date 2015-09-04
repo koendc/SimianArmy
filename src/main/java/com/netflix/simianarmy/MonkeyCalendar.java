@@ -59,8 +59,8 @@ public interface MonkeyCalendar {
     /** Gets the next business day from the start date after n business days.
      *
      * @param date the start date
-     * @param n the number of business days from now
-     * @return the business day after n business days
+     * @param n the number of minutes from now
+     * @return the business day after n minutes
      */
     Date getBusinessDay(Date date, int n);
 }

@@ -48,9 +48,9 @@ public class UntaggedRule implements Rule {
 
     private final Set<String> tagNames;
 
-    private final int retentionDaysWithOwner;
+    private final int retentionMinutesWithOwner;
 
-    private final int retentionDaysWithoutOwner;
+    private final int retentionMinutesWithoutOwner;
 
 
     /**
@@ -61,13 +61,13 @@ public class UntaggedRule implements Rule {
      * @param tagNames
      *            Set of tags that needs to be set
      */
-    public UntaggedRule(MonkeyCalendar calendar, Set<String> tagNames, int retentionDaysWithOwner, int retentionDaysWithoutOwner) {
+    public UntaggedRule(MonkeyCalendar calendar, Set<String> tagNames, int retentionMinutesWithOwner, int retentionMinutesWithoutOwner) {
         Validate.notNull(calendar);
         Validate.notNull(tagNames);
         this.calendar = calendar;
         this.tagNames = tagNames;
-        this.retentionDaysWithOwner = retentionDaysWithOwner;
-        this.retentionDaysWithoutOwner = retentionDaysWithoutOwner;
+        this.retentionMinutesWithOwner = retentionMinutesWithOwner;
+        this.retentionMinutesWithoutOwner = retentionMinutesWithoutOwner;
     }
 
     @Override
@@ -80,11 +80,11 @@ public class UntaggedRule implements Rule {
                 LOGGER.error(String.format("The resource %s %s", resource.getId(), terminationReason));
                 DateTime now = new DateTime(calendar.now().getTimeInMillis());
                 if (resource.getExpectedTerminationTime() == null) {
-                    int retentionDays = retentionDaysWithoutOwner;
+                    int retentionMinutes = retentionMinutesWithoutOwner;
                     if (resource.getOwnerEmail() != null) {
-                        retentionDays = retentionDaysWithOwner;
+                        retentionMinutes = retentionMinutesWithOwner;
                     }
-                    Date terminationTime = calendar.getBusinessDay(new Date(now.getMillis()), retentionDays);
+                    Date terminationTime = calendar.getBusinessDay(new Date(now.getMillis()), retentionMinutes);
                     resource.setExpectedTerminationTime(terminationTime);
                     resource.setTerminationReason(terminationReason);
                 }
