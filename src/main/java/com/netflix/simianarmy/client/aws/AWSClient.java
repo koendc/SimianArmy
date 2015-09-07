@@ -635,7 +635,7 @@ public class AWSClient implements CloudClient {
         Validate.notEmpty(dbInstanceId);
         LOGGER.info(String.format("Deleting DB Instance %s in region %s.", dbInstanceId, region));
         AmazonRDS rdsClient = rdsClient();
-        DeleteDBInstanceRequest request = new DeleteDBInstanceRequest().withDBInstanceIdentifier(dbInstanceId);
+        DeleteDBInstanceRequest request = new DeleteDBInstanceRequest().withDBInstanceIdentifier(dbInstanceId).withSkipFinalSnapshot(true);
         rdsClient.deleteDBInstance(request);
     }
 
