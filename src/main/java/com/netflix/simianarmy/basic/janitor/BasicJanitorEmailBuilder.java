@@ -34,7 +34,7 @@ public class BasicJanitorEmailBuilder extends JanitorEmailBuilder {
         {"Resource Type", "Resource", "Region", "Description", "Expected Termination Time",
         "Termination Reason", "View/Edit"};
     private static final String AHREF_TEMPLATE = "<a href=\"%s\">%s</a>";
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forPattern("EEE, MMM dd, yyyy");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forPattern("EEE, MMM dd, yyyy HH:mm zzz");
 
     private Map<String, Collection<Resource>> emailToResources;
 
