@@ -554,8 +554,13 @@ public class AWSClient implements CloudClient {
         AmazonRDS rdsClient = rdsClient();
         if (dbInstanceIds == null || dbInstanceIds.length == 0) {
             DescribeDBInstancesRequest request = new DescribeDBInstancesRequest();
-            DescribeDBInstancesResult result = rdsClient.describeDBInstances(request);
-            dbInstances.addAll(result.getDBInstances());
+            String marker = null;
+            do {
+              request.setMarker(marker);
+              DescribeDBInstancesResult result = rdsClient.describeDBInstances(request);
+              dbInstances.addAll(result.getDBInstances());
+              marker = result.getMarker();
+            } while (marker != null);
         } else {
             for (String dbInstanceId : dbInstanceIds) {
                 DescribeDBInstancesRequest request = new DescribeDBInstancesRequest();
